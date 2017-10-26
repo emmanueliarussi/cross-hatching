@@ -54,6 +54,7 @@
         </style>
 
 <script src="js/three.min.js"></script>
+<script src="js/PLYLoader.js"></script>
 <script src="js/dat.gui.min.js"></script>
 <script src="js/ImprovedNoise.js"></script>
 
@@ -242,7 +243,7 @@
         var colors = [ [ 0, 186, 233 ], [ 222, 0, 21 ], [ 233, 77, 0 ], [ 113, 206, 3 ], [ 219, 118, 255 ] ];
 
         var presets = {
-            'Default': { ambient: 8, diffuse: 100, specular: 100, rim: 46, shininess: 49, invertRim: false, displayOutline: false, solidRender: false, model: 3, paper: 0, inkColor: [ 72, 72, 164 ] },
+            'Default': { ambient: 8, diffuse: 100, specular: 100, rim: 73, shininess: 49, invertRim: false, displayOutline: false, solidRender: false, model: 1, paper: 4, inkColor: [ 0, 0, 0 ] },
             'Sketch': { ambient: 9.8, diffuse: 100, specular: 100, rim: 81, shininess: 12, invertRim: true, displayOutline: false, solidRender: false, model: 5, paper: 2, inkColor: [ 175, 175, 175 ] },
             'Classroom': { ambient: 13, diffuse: 27, specular: 100, rim: 76, shininess: 27, invertRim: false, displayOutline: true, solidRender: false, model: 2, paper: 3, inkColor: [ 41, 41, 202 ] },
             'Engraving': { ambient: 0, diffuse: 57, specular: 100, rim: 77, shininess: 15, invertRim: true, displayOutline: false, solidRender: false, model: 4, paper: 1, inkColor: [ 90, 120, 111 ] }
@@ -283,7 +284,7 @@
             gui.add( settings, 'invertRim' );
             gui.add( settings, 'displayOutline' );
             gui.add( settings, 'solidRender' );
-            gui.add( settings, 'model', { Cube: 1, Sphere: 2, TorusKnot: 3, Torus: 4, Distort: 5, Capsule: 6 } );
+            gui.add( settings, 'model', { PLY: 1, Sphere: 2, TorusKnot: 3, Torus: 4, Distort: 5, Capsule: 6 } );
             gui.add( settings, 'paper', { Crumpled: 0, Grainy: 1, Fibers: 2, Squared: 3, Wrapper: 4, Parchment: 5 } );
             gui.addColor( settings, 'inkColor' );
 
@@ -472,7 +473,25 @@
             if( mesh ) scene.remove( mesh );
 
             switch( id ) {
-                case 1: mesh = new THREE.Mesh( new THREE.CubeGeometry( 40, 40, 40 ), material ); material.uniforms.repeat.value.set( 1,1 ); break;
+                
+                case 1:
+                    var loader = new THREE.PLYLoader();
+                    loader.load( './moto.ply', function ( geometry ) {
+                        if( mesh ) scene.remove( mesh );
+                        //geometry.computeVertexNormals();
+                        //var material = new THREE.MeshStandardMaterial( { color: 0x0055ff, flatShading: true } );
+                        mesh = new THREE.Mesh( geometry, material );
+                        material.uniforms.repeat.value.set( 4, 4 );
+                        mesh.scale.multiplyScalar( 100);
+                        
+                        mesh.geometry.verticesNeedUpdate = true;
+                        //mesh.geometry.computeCentroids();
+                        mesh.geometry.computeFaceNormals();
+                        mesh.geometry.computeVertexNormals();
+                        scene.add( mesh );
+                    } );
+                    break;
+                //case 1: mesh = new THREE.Mesh( new THREE.CubeGeometry( 40, 40, 40 ), material ); material.uniforms.repeat.value.set( 1,1 ); break;
                 case 2: mesh = new THREE.Mesh( new THREE.SphereGeometry( 40, 36, 36 ), material ); material.uniforms.repeat.value.set( 4, 4 ); break;
                 case 3: mesh = new THREE.Mesh( new THREE.TorusKnotGeometry( 50, 10, 200, 50, 1 ,3 ), material ); material.uniforms.repeat.value.set( 20, 2 ); break;
                 case 4: mesh = new THREE.Mesh( new THREE.TorusGeometry( 50, 20, 200, 50 ), material ); material.uniforms.repeat.value.set( 4, 2 ); break;
